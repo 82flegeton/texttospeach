@@ -67,3 +67,29 @@ def stitch(chunks: list[str], voice_id: str, api_key: str) -> AudioSegment:
         audio = AudioSegment.from_mp3(BytesIO(audio_bytes))
         combined += audio
     return combined
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python tts.py <input.txt>")
+        sys.exit(1)
+
+    input_path = sys.argv[1]
+    if not os.path.exists(input_path):
+        print(f"Error: file not found: {input_path}")
+        sys.exit(1)
+
+    api_key = os.environ["ELEVENLABS_API_KEY"]
+    voice_id = os.environ["VOICE_ID"]
+
+    text = read_text(input_path)
+    chunks = chunk_text(text)
+
+    output_path = str(Path(input_path).with_suffix(".mp3"))
+    audio = stitch(chunks, voice_id, api_key)
+    audio.export(output_path, format="mp3")
+    print(f"Done \u2014 saved to {output_path}")
+
+
+if __name__ == "__main__":
+    main()
