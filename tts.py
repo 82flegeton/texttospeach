@@ -37,3 +37,21 @@ def chunk_text(text: str, limit: int = CHUNK_LIMIT) -> list[str]:
     if current:
         chunks.append(current)
     return chunks
+
+
+def fetch_audio(text: str, voice_id: str, api_key: str) -> bytes:
+    """Fetch MP3 bytes from ElevenLabs TTS API."""
+    url = API_URL.format(voice_id=voice_id)
+    headers = {
+        "xi-api-key": api_key,
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "text": text,
+        "model_id": MODEL_ID,
+        "voice_settings": {"stability": 0.5, "similarity_boost": 0.75},
+    }
+    response = requests.post(url, json=payload, headers=headers)
+    if response.status_code != 200:
+        raise RuntimeError(f"ElevenLabs API error {response.status_code}: {response.text}")
+    return response.content
