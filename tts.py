@@ -55,3 +55,15 @@ def fetch_audio(text: str, voice_id: str, api_key: str) -> bytes:
     if response.status_code != 200:
         raise RuntimeError(f"ElevenLabs API error {response.status_code}: {response.text}")
     return response.content
+
+
+def stitch(chunks: list[str], voice_id: str, api_key: str) -> AudioSegment:
+    """Fetch audio for all chunks and concatenate into one AudioSegment."""
+    combined = AudioSegment.empty()
+    total = len(chunks)
+    for i, chunk in enumerate(chunks, 1):
+        print(f"Chunk {i}/{total} ({len(chunk)} chars)")
+        audio_bytes = fetch_audio(chunk, voice_id, api_key)
+        audio = AudioSegment.from_mp3(BytesIO(audio_bytes))
+        combined += audio
+    return combined

@@ -52,3 +52,24 @@ def test_fetch_audio_sends_correct_voice_id():
         tts.fetch_audio("hello", "my_voice_id", "key")
     call_url = mock_post.call_args[0][0]
     assert "my_voice_id" in call_url
+
+
+def _make_silent_mp3(duration_ms: int = 100) -> bytes:
+    seg = AudioSegment.silent(duration=duration_ms)
+    buf = BytesIO()
+    seg.export(buf, format="mp3")
+    return buf.getvalue()
+
+
+def test_stitch_concatenates_chunks():
+    fake_mp3 = _make_silent_mp3(100)
+    with patch("tts.fetch_audio", return_value=fake_mp3):
+        result = tts.stitch(["chunk one", "chunk two"], "voice_id", "api_key")
+    assert len(result) >= 200
+
+
+def test_stitch_calls_fetch_audio_for_each_chunk():
+    fake_mp3 = _make_silent_mp3(50)
+    with patch("tts.fetch_audio", return_value=fake_mp3) as mock_fetch:
+        tts.stitch(["a", "b", "c"], "vid", "key")
+    assert mock_fetch.call_count == 3
